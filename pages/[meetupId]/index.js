@@ -1,45 +1,60 @@
 import MeetupDetailPage from "../../components/meetups/MeetupDetail";
+import { MongoClient, ObjectId } from "mongodb";
 
-function MeetupDetail() {
+function MeetupDetail(props) {
   return (
     <MeetupDetailPage
-      img="https://blog.close.com/content/images/hubfs/315483/customer-meetup.jpeg"
-      title="Meeting 1"
-      address="1102 MaidenLane Ct 106, Ann Arbor, MI, 48105"
-      description="AA meeting"
+      id={props.meetupData.img}
+      img={props.meetupData.img}
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
     />
   );
 }
 
 export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://ashaluckinstest1:karthika@cluster0.anyheqi.mongodb.net/meetups"
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+  // console.log(meetups);
+
+  client.close();
   return {
     fallback: false,
-    paths: [
-      {
-        params: {
-          meetupId: "m1",
-        },
+    paths: meetups.map((meetup) => ({
+      params: {
+        meetupId: meetup._id.toString(),
       },
-      {
-        params: {
-          meetupId: "m2",
-        },
-      },
-    ],
+    })),
   };
 }
 
 export async function getStaticProps(context) {
   const meetupId = context.params.meetupId;
   console.log(meetupId);
+  const client = await MongoClient.connect(
+    "mongodb+srv://ashaluckinstest1:karthika@cluster0.anyheqi.mongodb.net/meetups"
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+  const selectedMeetup = await meetupsCollection.findOne({
+    _id: new ObjectId(meetupId),
+  });
+  // console.log(selectedMeetup);
+
+  client.close();
   return {
     props: {
       meetupData: {
-        img: "https://blog.close.com/content/images/hubfs/315483/customer-meetup.jpeg",
-        id: meetupId,
-        title: "Meeting 1",
-        address: "1102 MaidenLane Ct 106, Ann Arbor, MI, 48105",
-        description: "AA meeting",
+        img: selectedMeetup.image,
+        id: selectedMeetup._id.toString(),
+        title: selectedMeetup.title,
+        address: selectedMeetup.address,
+        description: selectedMeetup.description,
       },
     },
   };
