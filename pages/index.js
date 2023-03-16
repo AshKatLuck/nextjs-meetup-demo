@@ -42,7 +42,7 @@ export async function getStaticProps() {
     // props: {
     //   meetups: DUMMY_meetups,
     // },
-    revalidate: 10,
+    revalidate: 1,
   };
 }
 
